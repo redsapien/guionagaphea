@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#030105">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <title>Agaphea Boutique • Master Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@1,600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #030105;
+            --surface: #0a060f;
+            --pink: #ff2a8d;
+            --pink-glow: rgba(255, 42, 141, 0.45);
+            --cyan: #00f0ff;
+            --cyan-glow: rgba(0, 240, 255, 0.45);
+            --purple: #9333ea;
+            --text: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: rgba(255, 255, 255, 0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; -webkit-tap-highlight-color: transparent; }
+        html, body { background-color: var(--bg); color: var(--text); overflow-x: hidden; min-height: 100vh; display: flex; flex-direction: column; position: relative; }
+
+        /* FONDO VIVO CON BURBUJAS AVANZADAS */
+        .live-bg {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: -1; overflow: hidden; pointer-events: none; background: radial-gradient(circle at 50% 30%, #120720 0%, #030105 85%);
+        }
+        .bubble {
+            position: absolute; bottom: -60px; background: radial-gradient(circle at 35% 35%, var(--pink), var(--purple));
+            border-radius: 50%; opacity: 0.35; filter: blur(3px);
+            animation: floatUp linear infinite;
+        }
+        @keyframes floatUp {
+            0% { transform: translateY(0) translateX(0) scale(1); opacity: 0; }
+            20% { opacity: 0.45; }
+            80% { opacity: 0.45; }
+            100% { transform: translateY(-110vh) translateX(60px) scale(1.3); opacity: 0; }
+        }
+
+        /* PRELOADER BIOMÉTRICO CINEMATOGRÁFICO PRO CON BARRA SUPERIOR */
+        #preloader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+            background: #020104; z-index: 99999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1), visibility 0.8s;
+            padding: 20px; text-align: center;
+        }
+
+        /* BARRA DE PROGRESO SUPERIOR ULTRA PRO */
+        .top-scan-progress-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 5px;
+            background: rgba(255,255,255,0.05); z-index: 10;
+        }
+        .top-scan-progress-bar {
+            width: 0%; height: 100%; background: linear-gradient(90deg, var(--pink), var(--cyan));
+            box-shadow: 0 0 15px var(--cyan); transition: width 0.08s linear;
+        }
+
+        .preloader-title {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            color: var(--pink);
+            text-shadow: 0 0 30px var(--pink), 0 0 60px var(--cyan);
+            font-style: italic; font-weight: 600; margin-bottom: 8px;
+        }
+        .preloader-sub { font-size: 0.75rem; letter-spacing: 4px; text-transform: uppercase; color: var(--cyan); margin-bottom: 35px; }
+        
+        /* ESCÁNER HUELLA HOLOGRÁFICO */
+        .biometric-scanner-box {
+            display: flex; flex-direction: column; align-items: center; gap: 18px; cursor: pointer;
+            position: relative; padding: 15px; user-select: none; width: 100%; max-width: 320px;
+        }
+        .fingerprint-container {
+            width: 110px; height: 110px; border-radius: 50%;
+            background: rgba(255, 42, 141, 0.05); border: 2px dashed var(--pink);
+            display: flex; align-items: center; justify-content: center;
+            position: relative; transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 30px rgba(255,42,141,0.2);
+        }
+        .fingerprint-container svg { width: 55px; height: 55px; fill: var(--pink); opacity: 0.8; transition: all 0.4s; }
+        .fingerprint-container.scanning {
+            border-style: solid; border-color: var(--cyan);
+            box-shadow: 0 0 50px var(--cyan-glow), inset 0 0 25px var(--cyan-glow);
+            transform: scale(1.06);
+        }
+        .fingerprint-container.scanning svg { fill: var(--cyan); opacity: 1; filter: drop-shadow(0 0 10px var(--cyan)); }
+        
+        .scanner-instruction { font-size: 0.85rem; color: var(--text-dim); letter-spacing: 1px; font-weight: 500; }
+        .scanner-instruction span { color: var(--pink); font-weight: 700; text-shadow: 0 0 10px var(--pink-glow); }
+
+        .unlock-glow-fx {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: radial-gradient(circle, rgba(0,240,255,0.25) 0%, rgba(255,42,141,0.15) 50%, transparent 80%);
+            opacity: 0; pointer-events: none; transition: opacity 0.6s ease;
+        }
+
+        .loaded { opacity: 0; visibility: hidden; pointer-events: none; }
+
+        /* CONTENEDOR PRINCIPAL */
+        .wrapper {
+            width: 100%; max-width: 950px; margin: 0 auto;
+            padding: 20px; display: flex; flex-direction: column; gap: 20px; flex: 1;
+        }
+
+        /* HEADER ELEGANTE CON TIPOGRAFÍA CLARA */
+        .header {
+            background: rgba(10, 6, 15, 0.85); backdrop-filter: blur(12px);
+            border: 1px solid var(--border); border-radius: 18px; padding: 22px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .brand { font-size: 0.75rem; font-weight: 800; letter-spacing: 2.5px; text-transform: uppercase; color: var(--pink); text-shadow: 0 0 10px var(--pink-glow); }
+        .client-info h1 { font-family: 'Playfair Display', serif; font-size: 1.45rem; color: #fff; font-style: italic; margin-top: 3px; font-weight: 600; }
+        .client-info p { font-size: 0.85rem; color: var(--text-dim); font-weight: 500; }
+        .whatsapp-btn {
+            background: rgba(0, 240, 255, 0.1); border: 1px solid var(--cyan); color: var(--cyan);
+            padding: 10px 20px; border-radius: 25px; font-size: 0.8rem; font-weight: 700; text-decoration: none;
+            transition: all 0.2s; box-shadow: 0 0 15px rgba(0,240,255,0.15); display: inline-flex; align-items: center; gap: 6px;
+        }
+        .whatsapp-btn:hover { background: var(--cyan); color: #000; box-shadow: 0 0 20px var(--cyan-glow); }
+
+        /* TELEPROMPTER ESTUDIO */
+        .studio {
+            background: rgba(10, 6, 15, 0.9); border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 18px; padding: 24px; display: grid; gap: 16px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+        }
+        .studio-top { display: flex; justify-content: space-between; align-items: center; }
+        .studio-title { font-size: 1rem; font-weight: 700; color: #fff; display: flex; align-items: center; gap: 8px; }
+        .studio-title span { color: var(--pink); }
+        .timer { font-size: 1.9rem; font-weight: 800; color: var(--cyan); font-variant-numeric: tabular-nums; text-shadow: 0 0 12px rgba(0,240,255,0.35); }
+        
+        .prompter-screen {
+            background: #020104; border: 2px solid var(--cyan); border-radius: 14px;
+            padding: 30px 20px; min-height: 150px; display: flex; align-items: center; justify-content: center;
+            text-align: center; font-size: clamp(1.25rem, 3.5vw, 1.7rem); font-weight: 600; color: #fff;
+            line-height: 1.5; position: relative; box-shadow: inset 0 0 25px rgba(0, 240, 255, 0.1);
+        }
+        .live-tag {
+            position: absolute; top: 12px; right: 14px; font-size: 0.65rem; letter-spacing: 1px;
+            color: var(--pink); background: rgba(255,42,141,0.12); padding: 4px 10px; border-radius: 6px; font-weight: 700;
+        }
+
+        .controls { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .btn-main {
+            background: linear-gradient(135deg, var(--pink), #d90473); color: #fff; border: none; padding: 12px 26px;
+            font-weight: 700; border-radius: 12px; cursor: pointer; font-size: 0.9rem;
+            box-shadow: 0 4px 15px var(--pink-glow); transition: all 0.2s;
+        }
+        .btn-main:active { transform: scale(0.96); }
+        .btn-sec {
+            background: #140d1f; color: var(--cyan); border: 1px solid rgba(0,240,255,0.3);
+            padding: 12px 20px; font-weight: 600; border-radius: 12px; cursor: pointer; font-size: 0.9rem;
+        }
+        .btn-sec:active { transform: scale(0.96); }
+
+        /* SECCIÓN GUION TÉCNICO Y ESCENAS */
+        .script-card {
+            background: rgba(10, 6, 15, 0.9); border: 1px solid var(--border);
+            border-radius: 18px; padding: 24px; display: grid; gap: 18px;
+        }
+        .card-title { font-size: 1.05rem; font-weight: 700; color: #fff; display: flex; justify-content: space-between; align-items: center; }
+        
+        .scene-list { display: grid; gap: 14px; }
+        .scene-row {
+            background: #050308; border: 1px solid var(--border); border-radius: 12px;
+            padding: 18px; display: flex; flex-direction: column; gap: 8px; transition: border-color 0.2s;
+        }
+        .scene-row:hover { border-color: rgba(255,42,141,0.4); }
+        .scene-header { display: flex; justify-content: space-between; align-items: center; font-size: 0.8rem; }
+        .scene-name { color: var(--cyan); font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+        .scene-time { color: var(--pink); font-weight: 700; background: rgba(255,42,141,0.1); padding: 3px 9px; border-radius: 6px; }
+        .scene-text { font-size: 0.95rem; color: var(--text-dim); line-height: 1.55; font-weight: 400; }
+        .scene-text b { color: #fff; font-weight: 600; }
+
+        /* GUION LIMPIO FINAL */
+        .clean-script {
+            background: #020104; border: 1px dashed rgba(255, 42, 141, 0.35);
+            border-radius: 14px; padding: 22px; font-family: 'Playfair Display', serif;
+            font-size: 1.05rem; color: #f8fafc; line-height: 1.65; font-style: italic;
+        }
+
+        /* VIDEOS GRABADOS */
+        .recorded-card {
+            background: rgba(10, 6, 15, 0.9); border: 1px solid var(--border);
+            border-radius: 18px; padding: 22px; text-align: center;
+        }
+        .rec-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 14px; margin-top: 14px; }
+        .rec-item {
+            background: #050308; border: 1px solid var(--border); border-radius: 12px;
+            padding: 18px 12px; cursor: pointer; position: relative; transition: all 0.2s;
+        }
+        .rec-item:hover { border-color: var(--cyan); box-shadow: 0 0 15px var(--cyan-glow); transform: translateY(-2px); }
+        .dot {
+            position: absolute; top: 10px; right: 10px; width: 8px; height: 8px;
+            background: var(--pink); border-radius: 50%; box-shadow: 0 0 8px var(--pink);
+            animation: ringPulse 1.5s infinite;
+        }
+        @keyframes ringPulse { 0% { transform: scale(0.95); opacity: 1; } 50% { transform: scale(1.4); opacity: 0.4; } 100% { transform: scale(0.95); opacity: 1; } }
+        .rec-label { font-size: 0.8rem; font-weight: 700; color: var(--text); margin-top: 8px; }
+
+        .footer { text-align: center; padding: 10px 0 25px; font-size: 0.75rem; color: var(--text-dim); letter-spacing: 2.5px; text-transform: uppercase; font-weight: 600; }
+
+        @media(max-width: 480px) {
+            .wrapper { padding: 12px; gap: 12px; }
+            .header, .studio, .script-card, .recorded-card { padding: 16px; }
+            .prompter-screen { min-height: 130px; font-size: 1.2rem; padding: 20px 14px; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- FONDO VIVO DINÁMICO -->
+    <div class="live-bg" id="bubbleContainer"></div>
+
+    <!-- PRELOADER BIOMÉTRICO CON BARRA DE PROGRESO SUPERIOR PRO -->
+    <div id="preloader">
+        <div class="top-scan-progress-container">
+            <div class="top-scan-progress-bar" id="topScanProgressBar"></div>
+        </div>
+        <div class="unlock-glow-fx" id="unlockEffect"></div>
+        
+        <div style="z-index: 2; width: 100%; display: flex; flex-direction: column; align-items: center;">
+            <div class="preloader-title" id="preloaderTitle">Entrando al panel de grabación...</div>
+            <div class="preloader-sub">Agaphea Boutique • Master Control</div>
+            
+            <div class="biometric-scanner-box" id="scannerTrigger">
+                <div class="fingerprint-container" id="fingerprintBtn">
+                    <svg viewBox="0 0 24 24"><path d="M17.81 4.47c-.08 0-.16-.02-.23-.06C15.66 3.42 13.9 3 12 3c-1.9 0-3.66.42-5.58 1.41-.15.08-.33.04-.41-.11-.08-.15-.04-.33.11-.41C8.36 2.76 10.23 2.3 12 2.3c1.93 0 3.8.44 5.82 1.48.15.08.21.26.13.41-.05.17-.18.28-.34.28zM12 5.5c-1.6 0-3.11.37-4.68 1.15-.14.07-.31.02-.38-.12-.07-.14-.02-.31.12-.38C8.71 5.92 10.32 5.5 12 5.5s3.29.42 4.94 1.25c.14.07.19.24.12.38-.07.14-.24.19-.38.12C15.11 5.87 13.6 5.5 12 5.5zm0 2.5c-1.13 0-2.23.27-3.35.82-.14.07-.31.01-.38-.13-.07-.14-.01-.31.13-.38 1.23-.61 2.44-.91 3.6-.91s2.37.3 3.6.91c.14.07.2.24.13.38-.07.14-.24.2-.38.13-1.12-.55-2.22-.82-3.35-.82zm-.5 3.5c-.83 0-1.5.67-1.5 1.5 0 .61.36 1.14.88 1.39v3.61c0 .34.28.62.62.62s.62-.28.62-.62v-3.61c.52-.25.88-.78.88-1.39 0-.83-.67-1.5-1.5-1.5z"/></svg>
+                </div>
+                <div class="scanner-instruction" id="scannerText">Mantén presionado para <span>llenar la barra superior</span></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="wrapper">
+        
+        <!-- HEADER -->
+        <header class="header">
+            <div class="client-info">
+                <span class="brand">Agaphea Studio</span>
+                <h1>Agaphea Boutique</h1>
+                <p>Manizales, Caldas</p>
+            </div>
+            <a href="https://wa.me/573014848031?text=¡Hola!%20Quiero%20información%20de%20Agaphea" target="_blank" class="whatsapp-btn">WhatsApp Directo ↗</a>
+        </header>
+
+        <!-- TELEPROMPTER -->
+        <section class="studio">
+            <div class="studio-top">
+                <div class="studio-title">🎙️ Teleprompter <span>(33s Master)</span></div>
+                <div class="timer" id="masterTimer">00:33</div>
+            </div>
+            <div class="prompter-screen" id="prompterText">
+                <div class="live-tag">EN VIVO</div>
+                Pulsa Iniciar para leer el guion fluido con claridad.
+            </div>
+            <div class="controls">
+                <button class="btn-main" onclick="startTeleprompter()">▶️ Iniciar</button>
+                <button class="btn-sec" onclick="pauseTeleprompter()">⏸️ Pausar</button>
+                <button class="btn-sec" onclick="resetTeleprompter()">🔄 Reiniciar</button>
+            </div>
+        </section>
+
+        <!-- GUION TÉCNICO Y ESCENAS -->
+        <section class="script-card">
+            <div class="card-title">
+                <span>🎬 Guion Técnico por Escenas (33s)</span>
+            </div>
+            
+            <div class="scene-list">
+                <div class="scene-row">
+                    <div class="scene-header">
+                        <span class="scene-name">Pieza 1 • El Gancho Local</span>
+                        <span class="scene-time">00:00 - 00:05</span>
+                    </div>
+                    <div class="scene-text"><b>Acción Visual:</b> Acercamiento con actitud magnética mostrando accesorios finos frente a cámara. <br><b>Voz en Off:</b> ¿Buscas ese lugar en Manizales que te haga sentir única?</div>
+                </div>
+
+                <div class="scene-row">
+                    <div class="scene-header">
+                        <span class="scene-name">Pieza 2 • Accesorios y Mayoristas</span>
+                        <span class="scene-time">00:05 - 00:18</span>
+                    </div>
+                    <div class="scene-text"><b>Acción Visual:</b> Enfoque detallado al exhibidor de accesorios. <br><b>Voz en Off:</b> Si eres emprendedora o tienes un negocio en Manizales, llévate nuestros accesorios al por mayor con alta rotación y margen directo, invirtiendo desde solo 100 mil pesos.</div>
+                </div>
+
+                <div class="scene-row">
+                    <div class="scene-header">
+                        <span class="scene-name">Pieza 3 • Estilo Personal Boutique</span>
+                        <span class="scene-time">00:18 - 00:28</span>
+                    </div>
+                    <div class="scene-text"><b>Acción Visual:</b> Modelaje fluido luciendo prendas y accesorios dentro de la boutique. <br><b>Voz en Off:</b> Y si buscas destacar con estilo propio, ven a nuestra boutique o pide ahora mismo haciendo clic. ¡Te vas a sentir irrepetible!</div>
+                </div>
+
+                <div class="scene-row">
+                    <div class="scene-header">
+                        <span class="scene-name">Pieza 4 • Cierre CTA</span>
+                        <span class="scene-time">00:28 - 00:33</span>
+                    </div>
+                    <div class="scene-text"><b>Acción Visual:</b> Logotipo elegante de Agaphea y botón de WhatsApp activo. <br><b>Voz en Off:</b> Encuéntranos en Agaphea. ¡Escríbanos ya!</div>
+                </div>
+            </div>
+
+            <!-- GUION LIMPIO FINAL -->
+            <div>
+                <div style="font-size: 0.8rem; font-weight: 700; color: var(--cyan); margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">Guion limpio continuo</div>
+                <div class="clean-script">
+                    "¿Buscas ese lugar en Manizales que te haga sentir única? Si eres emprendedora o tienes un negocio en Manizales, llévate nuestros accesorios al por mayor con alta rotación y margen directo, invirtiendo desde solo 100 mil pesos. Y si buscas destacar con estilo propio, ven a nuestra boutique o pide ahora mismo haciendo clic. ¡Te vas a sentir irrepetible! Encuéntranos en Agaphea. ¡Escríbanos ya!"
+                </div>
+            </div>
+        </section>
+
+        <!-- VIDEOS GRABADOS -->
+        <section class="recorded-card">
+            <div style="font-size: 0.9rem; font-weight: 700; color: #fff;">Videos Grabados y Herramientas</div>
+            <div class="rec-grid">
+                <div class="rec-item" onclick="alert('Abriendo Toma 1 del estudio de grabación...')">
+                    <div class="dot"></div>
+                    <div style="font-size: 1.3rem; color: var(--cyan);">📹</div>
+                    <div class="rec-label">Toma 1</div>
+                </div>
+                <div class="rec-item" style="border-color: var(--cyan);" onclick="alert('Reproduciendo Toma Master de Agaphea...')">
+                    <div class="dot" style="background: var(--cyan); box-shadow: 0 0 8px var(--cyan);"></div>
+                    <div style="font-size: 1.3rem; color: var(--pink);">✨</div>
+                    <div class="rec-label">Toma Master</div>
+                </div>
+                <div class="rec-item" onclick="alert('Iniciando nueva secuencia de grabación automática...')">
+                    <div style="font-size: 1.3rem; color: var(--text-dim);">+</div>
+                    <div class="rec-label">Nueva Toma</div>
+                </div>
+            </div>
+        </section>
+
+    </div>
+
+    <footer class="footer">
+        Agaphea Boutique • Master Control v6.1
+    </footer>
+
+    <script>
+        // GENERADOR DE BURBUJAS DINÁMICAS VIVAS
+        const bubbleContainer = document.getElementById('bubbleContainer');
+        const bubbleCount = 26;
+
+        for (let i = 0; i < bubbleCount; i++) {
+            const bubble = document.createElement('div');
+            bubble.classList.add('bubble');
+            
+            const size = Math.random() * 20 + 6;
+            const left = Math.random() * 100;
+            const duration = Math.random() * 7 + 4;
+            const delay = Math.random() * 5;
+
+            bubble.style.width = `${size}px`;
+            bubble.style.height = `${size}px`;
+            bubble.style.left = `${left}%`;
+            bubble.style.animationDuration = `${duration}s`;
+            bubble.style.animationDelay = `${delay}s`;
+
+            bubbleContainer.appendChild(bubble);
+        }
+
+        // SISTEMA BIOMÉTRICO CON BARRA SUPERIOR PRO
+        const scannerTrigger = document.getElementById('scannerTrigger');
+        const fingerprintBtn = document.getElementById('fingerprintBtn');
+        const scannerText = document.getElementById('scannerText');
+        const preloaderTitle = document.getElementById('preloaderTitle');
+        const unlockEffect = document.getElementById('unlockEffect');
+        const preloader = document.getElementById('preloader');
+        const topScanProgressBar = document.getElementById('topScanProgressBar');
+
+        let isUnlocked = false;
+        let progressInterval;
+        let startTime;
+        const requiredHoldTime = 2000; // 2 segundos exactos
+
+        function startBiometricScan(e) {
+            if (isUnlocked) return;
+            e.preventDefault();
+            
+            fingerprintBtn.classList.add('scanning');
+            scannerText.innerHTML = "Mantén presionado... <span>Sostén sin soltar</span>";
+            
+            startTime = Date.now();
+            clearInterval(progressInterval);
+
+            progressInterval = setInterval(() => {
+                let elapsed = Date.now() - startTime;
+                let progress = (elapsed / requiredHoldTime) * 100;
+                
+                if (progress >= 100) {
+                    progress = 100;
+                    clearInterval(progressInterval);
+                    completeUnlock();
+                }
+                topScanProgressBar.style.width = progress + '%';
+            }, 30);
+        }
+
+        function cancelBiometricScan(e) {
+            if (isUnlocked) return;
+            if (e) e.preventDefault();
+            
+            clearInterval(progressInterval);
+            let elapsed = Date.now() - startTime;
+            
+            if (elapsed < requiredHoldTime) {
+                topScanProgressBar.style.width = '0%';
+                fingerprintBtn.classList.remove('scanning');
+                scannerText.innerHTML = "Mantén presionado para <span>llenar la barra superior</span>";
+            }
+        }
+
+        function completeUnlock() {
+            isUnlocked = true;
+            topScanProgressBar.style.width = '100%';
+            fingerprintBtn.classList.remove('scanning');
+            preloaderTitle.innerText = "¡Acceso Autorizado!";
+            scannerText.innerHTML = "Entrando al panel <span>de grabación</span>";
+            unlockEffect.style.opacity = '1';
+
+            setTimeout(() => {
+                preloader.classList.add('loaded');
+            }, 700);
+        }
+
+        // Eventos táctiles y de mouse
+        scannerTrigger.addEventListener('mousedown', startBiometricScan);
+        scannerTrigger.addEventListener('mouseup', cancelBiometricScan);
+        scannerTrigger.addEventListener('mouseleave', cancelBiometricScan);
+
+        scannerTrigger.addEventListener('touchstart', startBiometricScan, { passive: false });
+        scannerTrigger.addEventListener('touchend', cancelBiometricScan, { passive: false });
+        scannerTrigger.addEventListener('touchcancel', cancelBiometricScan, { passive: false });
+
+        // TELEPROMPTER LÓGICA
+        const scriptLines = [
+            { time: 5, text: "¿Buscas ese lugar en Manizales que te haga sentir única?" },
+            { time: 13, text: "Si eres emprendedora o tienes un negocio en Manizales, llévate nuestros accesorios al por mayor con alta rotación y margen directo, invirtiendo desde solo 100 mil pesos." },
+            { time: 10, text: "Y si buscas destacar con estilo propio, ven a nuestra boutique o pide ahora mismo haciendo clic. ¡Te vas a sentir irrepetible!" },
+            { time: 5, text: "Encuéntranos en Agaphea. ¡Escríbanos ya!" }
+        ];
+
+        let currentLine = 0;
+        let timerInterval;
+        let timeLeft = 33;
+        let isRunning = false;
+
+        const prompterElement = document.getElementById('prompterText');
+        const timerElement = document.getElementById('masterTimer');
+
+        function updatePrompter() {
+            if (currentLine < scriptLines.length) {
+                prompterElement.innerHTML = `<div class="live-tag">EN VIVO</div>${scriptLines[currentLine].text}`;
+            }
+        }
+
+        function startTeleprompter() {
+            if (isRunning) return;
+            isRunning = true;
+            
+            if(timeLeft === 33) {
+                currentLine = 0;
+                updatePrompter();
+            }
+
+            timerInterval = setInterval(() => {
+                if (timeLeft > 0) {
+                    timeLeft--;
+                    let seconds = timeLeft < 10 ? '0' + timeLeft : timeLeft;
+                    timerElement.innerText = `00:${seconds}`;
+                    
+                    if (timeLeft === 28) { currentLine = 1; updatePrompter(); }
+                    if (timeLeft === 15) { currentLine = 2; updatePrompter(); }
+                    if (timeLeft === 5)  { currentLine = 3; updatePrompter(); }
+
+                } else {
+                    clearInterval(timerInterval);
+                    isRunning = false;
+                    prompterElement.innerHTML = `<div class="live-tag">LISTO</div>¡Toma Perfecta Finalizada! 🚀`;
+                }
+            }, 1000);
+        }
+
+        function pauseTeleprompter() {
+            clearInterval(timerInterval);
+            isRunning = false;
+        }
+
+        function resetTeleprompter() {
+            clearInterval(timerInterval);
+            isRunning = false;
+            timeLeft = 33;
+            currentLine = 0;
+            timerElement.innerText = "00:33";
+            prompterElement.innerHTML = `<div class="live-tag">EN VIVO</div>Pulsa Iniciar para leer el guion fluido con claridad.`;
+        }
+    </script>
+</body>
+</html>
